@@ -7,10 +7,14 @@ import { Label } from "@/components/ui/label";
 import { loginUser } from "../../api/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import Spinner from "../spinner";
 
+import {useRouter} from "next/navigation";
 
 export default function LoginForm() {
   const [form, setForm] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const formSchema = z.object({
     email: z.string().email("Invalid email format"),
@@ -21,21 +25,33 @@ export default function LoginForm() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if(formSchema){
-    try{
+    if (formSchema) {
+      try {
+        setLoading(true);
         const { email, password } = form;
-        const response = loginUser(email, password);
-        console.log(response);
-    }   catch (error) {
-        console.error(error);
+        const response = await loginUser(email, password);
+        if (response && response.user) {
+          localStorage.setItem("user", JSON.stringify(response.user));
+          console.log("User data saved to localStorage:", response.user);
+          router.push("/dashboard");
+        }
+
+      } catch (error) {
+        console.error("Error during login:", error);
+      }finally{
+        setLoading(false);
+      }
     }
-  }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {loading ? (
+        <Spinner/>
+      ):(
+        <>
       <div>
         <Label htmlFor="email">Email</Label>
         <Input
@@ -63,6 +79,8 @@ export default function LoginForm() {
       </div>
 
       <Button type="submit" className="w-full">Login</Button>
+      </>
+      )}
     </form>
   );
 }
