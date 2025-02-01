@@ -44,3 +44,22 @@ export const loginUser = async (email: string, password: string) => {
     throw error;
   }
 }
+
+export const logoutUser = async (email: string) => {
+  try {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    const payload = { email };
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, payload, {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : undefined,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      return error.response?.data || { message: 'Logout failed' };
+    }
+    throw error;
+  }
+}
