@@ -1,4 +1,3 @@
-// src/components/forms/login-form.tsx
 "use client";
 
 import { useState } from "react";
@@ -6,10 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { loginUser } from "../../api/auth";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 
 export default function LoginForm() {
   const [form, setForm] = useState({ email: "", password: "" });
+
+  const formSchema = z.object({
+    email: z.string().email("Invalid email format"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -17,6 +23,7 @@ export default function LoginForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if(formSchema){
     try{
         const { email, password } = form;
         const response = loginUser(email, password);
@@ -24,6 +31,7 @@ export default function LoginForm() {
     }   catch (error) {
         console.error(error);
     }
+  }
   };
 
   return (
