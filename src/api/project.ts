@@ -47,3 +47,25 @@ export const getProjects = async () => {
         throw error;
     }
 };
+
+export const deleteProject = async (projectId: string) => {
+    try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+        
+        const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/projects/delete`, {
+            headers: {
+                Authorization: token ? `Bearer ${token}` : undefined,
+            },
+            data: {
+                id: projectId
+            }
+        });
+        
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            return error.response?.data || { message: 'Failed to delete project' };
+        }
+        throw error;
+    }
+}
