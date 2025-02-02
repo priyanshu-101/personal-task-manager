@@ -112,7 +112,7 @@ export default function UpcomingTasks() {
         )}
       </div>
 
-      {completedTasks.length > 0 && (
+      {completedTasks.length > 0 ? (
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <CheckCircle className="w-6 h-6" />
@@ -139,6 +139,19 @@ export default function UpcomingTasks() {
               </Card>
             ))}
           </div>
+        </div>
+      ):(
+        <div>
+        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+        <Calendar className="w-6 h-6" />
+        Completed Tasks
+      </h2>
+        <Card className="bg-gray-50 border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-8">
+              <Calendar className="w-12 h-12 text-gray-400 mb-4" />
+              <p className="text-gray-600 text-lg">No task completed yet</p>
+            </CardContent>
+          </Card>
         </div>
       )}
 
