@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { gettasks } from "@/api/task";
 import Spinner from "@/components/spinner";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { FaEllipsisV } from "react-icons/fa"; 
+import { FaEllipsisV } from "react-icons/fa";
 import { deletetask } from "@/api/task";
-   
+import TaskUpdateModal from "../../../components/Taskupdatemodal";
+
 
 const COLORS = ["#4CAF50", "#FF9800", "#F44336"]; // Green, Orange, Red
 
@@ -19,6 +20,7 @@ export default function ProjectTasks() {
   const [projectTasks, setProjectTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [taskStats, setTaskStats] = useState([]);
+  const [updateTask, setUpdateTask] = useState(null);
   const [menuOpen, setMenuOpen] = useState(null); // State to track which task has the menu open
 
   const fetchtasks = async () => {
@@ -41,7 +43,7 @@ export default function ProjectTasks() {
             month: "short",
             day: "numeric",
           }),
-          status: task.status.charAt(0).toUpperCase() + task.status.slice(1), 
+          status: task.status.charAt(0).toUpperCase() + task.status.slice(1),
         }));
 
       // Sort by due date
@@ -75,18 +77,20 @@ export default function ProjectTasks() {
   };
 
   const handleUpdate = (taskId) => {
-    // Handle task update
-    console.log("Update task:", taskId);
+    const task = projectTasks.find((t) => t.id === taskId);
+    console.log("Task to update:", projectTasks);
+    setUpdateTask(task);
+    setMenuOpen(null); // Close the dropdown menu
   };
 
-  const handleDelete  = async (taskId) => {
+  const handleDelete = async (taskId) => {
     try {
       setIsLoading(true);
       const response = await deletetask(taskId);
       fetchtasks();
     } catch (error) {
       console.error("Failed to delete task:", error);
-    }finally {
+    } finally {
       setIsLoading(false);
     }
   };
@@ -178,6 +182,15 @@ export default function ProjectTasks() {
             )}
           </>
         )}
+        <TaskUpdateModal
+          task={updateTask}
+          isOpen={!!updateTask}
+          onClose={() => setUpdateTask(null)}
+          onSuccess={() => {
+            fetchtasks();
+            setUpdateTask(null);
+          }}
+        />
       </main>
     </div>
   );
