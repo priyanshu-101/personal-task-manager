@@ -69,3 +69,28 @@ export const deleteProject = async (projectId: string) => {
         throw error;
     }
 }
+
+export const updateProject = async (id: string, name: string, description: string) => {
+    try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+
+        const payload = {
+            "id": id,
+            "name" : name,
+            "description": description
+        };
+
+        const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/projects/update`, payload, {
+            headers: {
+                Authorization: token ? `Bearer ${token}` : undefined,
+            },
+        });
+
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            return error.response?.data || { message: 'Failed to update project' };
+        }
+        throw error;
+    }
+}
