@@ -11,6 +11,7 @@ import { getProjects, deleteProject } from "@/api/project";
 import Spinner from "@/components/spinner";
 import UpcomingTasks from "@/components/upcomingTasks";
 import Footer from "@/components/Footer";
+import UpdateProjectModal from "@/components/modal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +32,7 @@ import {
 export default function Dashboard() {
   const [greeting, setGreeting] = useState("Good morning");
   const [deleteProjectModal, setDeleteProject] = useState(null);
+  const [updateProjectData, setUpdateProjectData] = useState(null);
   const router = useRouter();
 
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
@@ -108,7 +110,10 @@ export default function Dashboard() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => console.log("Update", project.id)}>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          setUpdateProjectData(project);
+                        }}>
                           Update
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setDeleteProject(project)}>
@@ -134,6 +139,16 @@ export default function Dashboard() {
           <Footer />
         </div>
 
+        <UpdateProjectModal
+          project={updateProjectData}
+          isOpen={!!updateProjectData}
+          onClose={() => setUpdateProjectData(null)}
+          onSuccess={() => {
+            refetch();
+            setUpdateProjectData(null);
+          }}
+        />
+
 
         <AlertDialog open={!!deleteProjectModal} onOpenChange={() => setDeleteProject(null)}>
           <AlertDialogContent>
@@ -146,7 +161,7 @@ export default function Dashboard() {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => handleDelete(deleteProjectModal?.id)} 
+                onClick={() => handleDelete(deleteProjectModal?.id)}
                 className="bg-red-500 hover:bg-red-600"
               >
                 Delete
