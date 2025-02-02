@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getProjects, deleteProject } from "@/api/project";
 import Spinner from "@/components/spinner";
+import UpcomingTasks from "@/components/upcomingTasks";
+import Footer from "@/components/Footer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +30,7 @@ import {
 
 export default function Dashboard() {
   const [greeting, setGreeting] = useState("Good morning");
-  const [deleteProjectModal, setDeleteProject] = useState(null); 
+  const [deleteProjectModal, setDeleteProject] = useState(null);
   const router = useRouter();
 
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
@@ -55,7 +57,7 @@ export default function Dashboard() {
   }, []);
 
   const handleDelete = (projectId) => {
-    deleteMutation.mutate(projectId); 
+    deleteMutation.mutate(projectId);
   };
 
   return (
@@ -94,11 +96,12 @@ export default function Dashboard() {
               <Card
                 key={project.id}
                 className="shadow-md hover:shadow-lg transition cursor-pointer relative"
+                onClick={() => router.push(`/projects/${project.id}`)}
               >
                 <CardHeader className="p-4">
                   <div className="flex items-center justify-between space-x-2">
                     <CardTitle className="truncate">{project.name}</CardTitle>
-                    <DropdownMenu>
+                    <DropdownMenu onClick={(e) => e.stopPropagation()}>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreVertical className="h-4 w-4" />
@@ -121,7 +124,16 @@ export default function Dashboard() {
               </Card>
             ))}
           </div>
+
         )}
+        <div className="mt-8">
+          <UpcomingTasks />
+        </div>
+
+        <div className="mt-8">
+          <Footer />
+        </div>
+
 
         <AlertDialog open={!!deleteProjectModal} onOpenChange={() => setDeleteProject(null)}>
           <AlertDialogContent>
