@@ -16,14 +16,20 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         if (!id || isNaN(taskId)) {
             return NextResponse.json({ error: "Invalid Task ID" }, { status: 400 });
         }
-        const deletedTask = await db.delete(tasks)
-            .where(eq(tasks.id, taskId))
 
-        if (deletedTask.length === 0) {
+        const task = await db.select().from(tasks).where(eq(tasks.id, taskId)).limit(1);
+
+        if (task.length === 0) {
             return NextResponse.json({ error: "Task not found" }, { status: 404 });
         }
 
-        return NextResponse.json({ message: "Task deleted successfully", task: deletedTask[0] }, { status: 200 });
+        const deletedTaskCount = await db.delete(tasks).where(eq(tasks.id, taskId));
+
+        if (deletedTaskCount === 0) {
+            return NextResponse.json({ error: "Task not found" }, { status: 404 });
+        }
+
+        return NextResponse.json({ message: "Task deleted successfully" }, { status: 200 });
 
     } catch (error: any) {
         console.error("Error deleting task:", error);
