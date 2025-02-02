@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { createtask } from "@/api/task";
+import Spinner from "../spinner";
 
 const taskSchema = z.object({
   title: z.string().min(3, "Task title must be at least 3 characters"),
@@ -34,6 +35,7 @@ const formatDate = (date: Date | null) => {
 
 export default function CreateTaskForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const form = useForm<TaskFormValues>({
@@ -52,6 +54,7 @@ export default function CreateTaskForm() {
     setIsSubmitting(true);
 
     try {
+      setLoading(true);
       console.log("Submitting Form Data:", values);
       await createtask(values.title, values.description, values.status, values.priority, values.dueDate, values.projectId);
       router.push("/dashboard");
@@ -59,6 +62,7 @@ export default function CreateTaskForm() {
       console.error("Failed to create task:", error);
     } finally {
       setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -68,6 +72,9 @@ export default function CreateTaskForm() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {loading ? (
+                  <Spinner/>
+                ):(<>
           <FormField
             control={form.control}
             name="title"
@@ -190,6 +197,8 @@ export default function CreateTaskForm() {
           <Button type="submit" disabled={isSubmitting} className="w-full">
             {isSubmitting ? "Creating..." : "Create Task"}
           </Button>
+          </>
+          )}
         </form>
       </Form>
     </div>

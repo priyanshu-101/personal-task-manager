@@ -33,6 +33,7 @@ export default function LoginForm() {
         const { email, password } = form;
         const response = await loginUser(email, password);
         if (response && response.user) {
+          localStorage.setItem("accessToken", response.token);
           localStorage.setItem("user", JSON.stringify(response.user));
           console.log("User data saved to localStorage:", response.user);
           router.push("/dashboard");
