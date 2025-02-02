@@ -3,6 +3,25 @@ import { db } from "@/db";
 import { tasks } from "@/db/schema";
 import { authMiddleware } from "../../middleware/authmiddleware";
 
+function parseFormattedDate(dateStr: string): Date | null {
+    if (!dateStr) return null;
+
+    const cleanDateStr = dateStr.replace(/(\d+)(st|nd|rd|th)/, "$1");
+    const parsedDate = new Date(cleanDateStr);
+    return isNaN(parsedDate.getTime()) ? null : parsedDate;
+}
+function formatDate(date: Date | null): string | null {
+    if (!date) return null;
+
+    const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "long", day: "numeric" };
+    const formattedDate = date.toLocaleDateString("en-US", options);
+
+    const day = date.getDate();
+    const suffix = ["th", "st", "nd", "rd"][(day % 10 < 4 && Math.floor(day / 10) !== 1) ? day % 10 : 0];
+
+    return formattedDate.replace(/\d+/, `${day}${suffix}`);
+}
+
 export async function POST(req: NextRequest) {
     const user = await authMiddleware(req);
     if (!user) {
@@ -13,8 +32,9 @@ export async function POST(req: NextRequest) {
     if (!title || !projectId) {
         return NextResponse.json({ error: "Title and Project ID are required" }, { status: 400 });
     }
-    const parsedDueDate = dueDate ? new Date(dueDate) : null;
-    if (dueDate && isNaN(parsedDueDate.getTime())) {
+
+    const parsedDueDate = parseFormattedDate(dueDate);
+    if (dueDate && !parsedDueDate) {
         return NextResponse.json({ error: "Invalid due date format" }, { status: 400 });
     }
 
@@ -38,10 +58,14 @@ export async function POST(req: NextRequest) {
                 dueDate: tasks.dueDate,
                 projectId: tasks.projectId,
                 userId: tasks.userId,
-
             });
 
-        return NextResponse.json(newTask[0], { status: 201 });
+        const taskWithFormattedDate = {
+            ...newTask[0],
+            dueDate: newTask[0].dueDate ? formatDate(new Date(newTask[0].dueDate)) : null
+        };
+
+        return NextResponse.json(taskWithFormattedDate, { status: 201 });
     } catch (error) {
         console.error("Error creating task:", error);
         return NextResponse.json({ error: "Error creating task", details: error.message }, { status: 500 });
