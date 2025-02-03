@@ -25,6 +25,8 @@ export default function UpcomingTasks() {
       const tasks = await gettasks();
 
       const today = new Date();
+      today.setHours(0, 0, 0, 0); 
+      
       const tomorrow = new Date(today);
       tomorrow.setDate(today.getDate() + 1);
 
@@ -33,10 +35,13 @@ export default function UpcomingTasks() {
 
       const filteredUpcomingTasks = tasks.filter((task) => {
         const taskDueDate = new Date(task.dueDate);
+        taskDueDate.setHours(0, 0, 0, 0); 
+        
         return (
           task.status?.toLowerCase() !== "completed" &&
           (taskDueDate.toDateString() === tomorrow.toDateString() ||
-            taskDueDate.toDateString() === dayAfterTomorrow.toDateString())
+            taskDueDate.toDateString() === dayAfterTomorrow.toDateString() ||
+            taskDueDate.toDateString() === today.toDateString()) 
         );
       });
 
@@ -46,6 +51,7 @@ export default function UpcomingTasks() {
 
       const filteredExpiredTasks = tasks.filter((task) => {
         const taskDueDate = new Date(task.dueDate);
+        taskDueDate.setHours(0, 0, 0, 0); 
         return taskDueDate < today && task.status?.toLowerCase() !== "completed";
       });
 
@@ -84,7 +90,7 @@ export default function UpcomingTasks() {
           <Card className="bg-gray-50 border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-8">
               <Calendar className="w-12 h-12 text-gray-400 mb-4" />
-              <p className="text-gray-600 text-lg">No upcoming tasks for the next two days</p>
+              <p className="text-gray-600 text-lg">No upcoming tasks for today or next two days</p>
             </CardContent>
           </Card>
         ) : (
@@ -140,13 +146,13 @@ export default function UpcomingTasks() {
             ))}
           </div>
         </div>
-      ):(
+      ) : (
         <div>
-        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-        <Calendar className="w-6 h-6" />
-        Completed Tasks
-      </h2>
-        <Card className="bg-gray-50 border-dashed">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <Calendar className="w-6 h-6" />
+            Completed Tasks
+          </h2>
+          <Card className="bg-gray-50 border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-8">
               <Calendar className="w-12 h-12 text-gray-400 mb-4" />
               <p className="text-gray-600 text-lg">No task completed yet</p>
