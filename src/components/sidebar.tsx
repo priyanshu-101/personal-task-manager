@@ -71,7 +71,7 @@ export default function Sidebar() {
       ) : (
         <>
           <div className="mb-8">
-            <h1 className="text-2xl font-bold">My App</h1>
+            <h1 className="text-2xl font-bold">Task Manager</h1>
             {storedUser && (
               <p className="text-sm text-muted-foreground mt-2">
                 Welcome, {storedUser.name}
