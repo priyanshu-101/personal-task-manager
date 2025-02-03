@@ -12,7 +12,7 @@ export const users = pgTable("users", {
 
 // ✅ Projects Table
 export const projects = pgTable("projects", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
   userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
@@ -21,7 +21,7 @@ export const projects = pgTable("projects", {
 
 // ✅ Tasks Table
 export const tasks = pgTable("tasks", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").defaultRandom().primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
   status: text("status").default("pending"), // pending, in-progress, completed
