@@ -4,16 +4,25 @@ import { useState, useEffect } from "react";
 import ProfileForm from "@/components/forms/profile-form";
 import Sidebar from "@/components/sidebar";
 
+// Define a strict type for user data
+interface UserData {
+  name: string;
+  email: string;
+  password: string;
+  hashedPassword: string;
+}
+
 const ProfilePage = () => {
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
+
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUserData(storedUser);
+      setUserData(JSON.parse(storedUser) as UserData);
     }
   }, []);
 
-  const handleSave = (updatedData: any) => {
+  const handleSave = (updatedData: UserData) => {
     localStorage.setItem("user", JSON.stringify(updatedData));
     setUserData(updatedData);
     alert("Profile updated successfully!");

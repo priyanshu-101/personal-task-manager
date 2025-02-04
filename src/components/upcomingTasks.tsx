@@ -76,17 +76,18 @@ export default function UpcomingTasks() {
     fetchtasks();
   }, []);
 
-  const getPriorityColor = (priority: any) => {
+  const getPriorityColor = (priority: string | null | undefined) => {
     if (!priority || typeof priority !== "string") return "text-gray-600";
   
-    const colors: { [key: string]: string } = {
+    const colors: Record<string, string> = {
       high: "text-red-600",
       medium: "text-yellow-600",
-      low: "text-green-600"
+      low: "text-green-600",
     };
   
     return colors[priority.toLowerCase()] || "text-gray-600";
   };
+  
   
   if (error) {
     return (

@@ -7,25 +7,22 @@ import { Label } from "@/components/ui/label";
 import { Save, Eye, EyeOff } from "lucide-react";
 import { updateuser } from "@/api/user";
 
-const ProfileForm = ({ 
-  userData, 
-  onSave 
-}: { 
-  userData: { 
-    name: string;
-    email: string;
-    password: string;
-    hashedPassword: string;
-  };
-  onSave: (updatedData: any) => void;
-}) => {
-  const [formData, setFormData] = useState({
+// Define a type for user data
+interface UserData {
+  name: string;
+  email: string;
+  password: string;
+  hashedPassword: string;
+}
+
+const ProfileForm = ({ userData }: { userData: UserData }) => {
+  const [formData, setFormData] = useState<UserData>({
     name: userData.name || "",
     email: userData.email || "",
-    password: "", 
-    hashedPassword: userData.hashedPassword || ""
+    password: "", // Leave blank initially
+    hashedPassword: userData.hashedPassword || "",
   });
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [isPasswordChanged, setIsPasswordChanged] = useState(false);
 
@@ -33,48 +30,45 @@ const ProfileForm = ({
     setFormData({
       name: userData.name || "",
       email: userData.email || "",
-      password: "", 
-      hashedPassword: userData.hashedPassword || ""
+      password: "", // Reset password field
+      hashedPassword: userData.hashedPassword || "",
     });
   }, [userData]);
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      password: e.target.value
+      password: e.target.value,
     }));
     setIsPasswordChanged(true);
   };
 
   const handleSave = async () => {
-    const updatedData = {
+    const updatedData: UserData & { isPasswordChanged: boolean } = {
       name: formData.name,
       email: formData.email,
       password: isPasswordChanged ? formData.password : formData.hashedPassword,
-      isPasswordChanged 
+      hashedPassword: isPasswordChanged ? formData.password : formData.hashedPassword,
+      isPasswordChanged,
     };
+
     try {
-      await updateProfile(updatedData); 
+      await updateProfile(updatedData);
       alert("Profile updated successfully!");
       localStorage.removeItem("user");
-
-      const updatedUserData = {
-        ...updatedData,
-        hashedPassword: isPasswordChanged ? formData.password : formData.hashedPassword
-      };
-      localStorage.setItem("user", JSON.stringify(updatedUserData));
-
+      localStorage.setItem("user", JSON.stringify(updatedData));
     } catch (error) {
       console.error("Failed to update profile:", error);
       alert("Failed to update profile. Please try again.");
     }
   };
 
-  const updateProfile = async (updatedData: any) => {
+  // Corrected function signature with proper type
+  const updateProfile = async (updatedData: UserData & { isPasswordChanged: boolean }) => {
     try {
       const response = await updateuser(updatedData.name, updatedData.email, updatedData.password);
       console.log("Update Profile Response:", response);
-    } catch (error) {
+    } catch (error: any) {
       throw new Error("Error updating profile: " + error.message);
     }
   };
@@ -82,7 +76,7 @@ const ProfileForm = ({
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
-      
+
       <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
         <div>
           <Label htmlFor="name" className="text-sm font-semibold">
@@ -138,9 +132,7 @@ const ProfileForm = ({
             </button>
           </div>
           {!isPasswordChanged && (
-            <p className="text-sm text-gray-500 mt-1">
-              Current password is stored securely
-            </p>
+            <p className="text-sm text-gray-500 mt-1">Current password is stored securely</p>
           )}
         </div>
 

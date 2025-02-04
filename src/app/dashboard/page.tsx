@@ -161,7 +161,7 @@ export default function Dashboard() {
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure you want to delete this project?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete "{deleteProjectModal?.name}" and all of its contents. This action cannot be undone.
+                This will permanently delete {deleteProjectModal?.name} and all of its contents. This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

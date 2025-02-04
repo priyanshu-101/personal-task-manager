@@ -9,6 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { Home, LogIn, LogOut, UserPlus, User, FolderPlus, CheckSquare, Menu } from "lucide-react";
 
+interface User {
+  name: string;
+  email: string;
+}
+
 interface NavItem {
   href: string;
   label: string;
@@ -27,13 +32,12 @@ const navItems: NavItem[] = [
 ];
 
 export default function Sidebar() {
-  const pathname = usePathname();
   const router = useRouter();
-  const [storedUser, setStoredUser] = useState<any>(null);
+  const [storedUser, setStoredUser] = useState<User | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user") || "null");
+    const user = JSON.parse(localStorage.getItem("user") || "null") as User | null;
     setStoredUser(user);
   }, []);
 
@@ -49,16 +53,9 @@ export default function Sidebar() {
     }
   };
 
-  const filteredNavItems = navItems.filter(item => {
-    if (storedUser) {
-      return item.requiresAuth;
-    } else {
-      return item.guestOnly;
-    }
-  });
-
   return (
     <>
+      {/* Mobile Sidebar */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button variant="outline" className="md:hidden fixed top-4 left-4 z-50">
@@ -69,7 +66,8 @@ export default function Sidebar() {
           <SidebarContent storedUser={storedUser} handleLogout={handleLogout} closeSidebar={() => setIsOpen(false)} />
         </SheetContent>
       </Sheet>
-      
+
+      {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 min-h-screen bg-background border-r p-4">
         <SidebarContent storedUser={storedUser} handleLogout={handleLogout} />
       </aside>
@@ -77,7 +75,15 @@ export default function Sidebar() {
   );
 }
 
-function SidebarContent({ storedUser, handleLogout, closeSidebar }: { storedUser: any, handleLogout: () => void, closeSidebar?: () => void }) {
+function SidebarContent({
+  storedUser,
+  handleLogout,
+  closeSidebar,
+}: {
+  storedUser: User | null;
+  handleLogout: () => void;
+  closeSidebar?: () => void;
+}) {
   const pathname = usePathname();
 
   return (
@@ -86,21 +92,25 @@ function SidebarContent({ storedUser, handleLogout, closeSidebar }: { storedUser
         <h1 className="text-2xl font-bold">Task Manager</h1>
         {storedUser && <p className="text-sm text-muted-foreground mt-2">Welcome, {storedUser.name}</p>}
       </div>
-      
+
       <nav className="space-y-6">
         <ul className="space-y-2">
-          {navItems.filter(item => storedUser ? item.requiresAuth : item.guestOnly).map(({ href, label, icon: Icon }) => (
-            <li key={href}>
-              <Link
-                href={href}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground ${pathname === href ? "bg-accent font-medium text-accent-foreground" : "text-muted-foreground"}`}
-                onClick={closeSidebar}
-              >
-                <Icon className="h-4 w-4" />
-                <span>{label}</span>
-              </Link>
-            </li>
-          ))}
+          {navItems
+            .filter((item) => (storedUser ? item.requiresAuth : item.guestOnly))
+            .map(({ href, label, icon: Icon }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className={`flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground ${
+                    pathname === href ? "bg-accent font-medium text-accent-foreground" : "text-muted-foreground"
+                  }`}
+                  onClick={closeSidebar}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{label}</span>
+                </Link>
+              </li>
+            ))}
         </ul>
         {storedUser && (
           <div className="pt-4 border-t">
