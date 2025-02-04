@@ -68,8 +68,8 @@ const ProfileForm = ({ userData }: { userData: UserData }) => {
     try {
       const response = await updateuser(updatedData.name, updatedData.email, updatedData.password);
       console.log("Update Profile Response:", response);
-    } catch (error: any) {
-      throw new Error("Error updating profile: " + error.message);
+    } catch (error) {
+      console.error("Error updating profile: " + error);
     }
   };
 
