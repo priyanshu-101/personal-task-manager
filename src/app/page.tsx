@@ -6,7 +6,7 @@ import Spinner from "@/components/spinner";
 
 export default function Home() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); 
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -16,11 +16,13 @@ export default function Home() {
     } else {
       router.push("/dashboard");
     }
-  }, []);
+
+    setIsLoading(false); 
+  }, [router]); 
 
   return (
     <div>
-{isLoading && <Spinner /> }
+      {isLoading && <Spinner />}
     </div>
   );
 }

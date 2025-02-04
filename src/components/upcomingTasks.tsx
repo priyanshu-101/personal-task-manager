@@ -19,10 +19,18 @@ export default function UpcomingTasks() {
   const [upcomingTasks, setUpcomingTasks] = useState<Task[]>([]);
   const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
   const [expiredTasks, setExpiredTasks] = useState<Task[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchtasks = async () => {
     try {
-      const tasks = await gettasks();
+      const tasksResponse = await gettasks();
+      
+      const tasks = Array.isArray(tasksResponse) ? tasksResponse : [];
+
+      if (tasks.length === 0) {
+        setError("No tasks found");
+        return;
+      }
 
       const today = new Date();
       today.setHours(0, 0, 0, 0); 
@@ -60,6 +68,7 @@ export default function UpcomingTasks() {
       setExpiredTasks(filteredExpiredTasks);
     } catch (error) {
       console.error("Failed to fetch tasks:", error);
+      setError("Failed to load tasks");
     }
   };
 
@@ -79,6 +88,17 @@ export default function UpcomingTasks() {
     return colors[priority.toLowerCase()] || "text-gray-600";
   };
   
+  if (error) {
+    return (
+      <Card className="bg-red-50">
+        <CardContent className="flex flex-col items-center justify-center py-8">
+          <AlertTriangle className="w-12 h-12 text-red-600 mb-4" />
+          <p className="text-red-600 text-lg">{error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div>

@@ -1,19 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Sidebar from "@/components/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { gettasks } from "@/api/task";
+import { gettasks, deletetask } from "@/api/task";
 import Spinner from "@/components/spinner";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { FaEllipsisV } from "react-icons/fa";
-import { deletetask } from "@/api/task";
 import TaskUpdateModal from "../../../components/Taskupdatemodal";
 
-
-const COLORS = ["#4CAF50", "#FF9800", "#F44336"]; // Green, Orange, Red
+const COLORS = ["#4CAF50", "#FF9800", "#F44336"];
 
 export default function ProjectTasks() {
   const { id } = useParams();
@@ -21,9 +19,9 @@ export default function ProjectTasks() {
   const [isLoading, setIsLoading] = useState(true);
   const [taskStats, setTaskStats] = useState([]);
   const [updateTask, setUpdateTask] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(null); // State to track which task has the menu open
+  const [menuOpen, setMenuOpen] = useState(null);
 
-  const fetchtasks = async () => {
+  const fetchtasks = useCallback(async () => {
     setIsLoading(true);
     try {
       const tasks = await gettasks();
@@ -32,7 +30,6 @@ export default function ProjectTasks() {
         throw new Error("Invalid tasks response format");
       }
 
-      // Filter tasks for the selected project
       const filteredTasks = tasks
         .filter((task) => task.projectId === Number(id))
         .map((task) => ({
@@ -46,7 +43,6 @@ export default function ProjectTasks() {
           status: task.status.charAt(0).toUpperCase() + task.status.slice(1),
         }));
 
-      // Sort by due date
       filteredTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
       setProjectTasks(filteredTasks);
@@ -56,7 +52,11 @@ export default function ProjectTasks() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchtasks();
+  }, [fetchtasks]);
 
   const calculateTaskStats = (tasks) => {
     const statusCounts = tasks.reduce((acc, task) => {
@@ -73,20 +73,19 @@ export default function ProjectTasks() {
   };
 
   const handleMenuToggle = (taskId) => {
-    setMenuOpen(menuOpen === taskId ? null : taskId); // Toggle the menu
+    setMenuOpen(menuOpen === taskId ? null : taskId);
   };
 
   const handleUpdate = (taskId) => {
     const task = projectTasks.find((t) => t.id === taskId);
-    console.log("Task to update:", projectTasks);
     setUpdateTask(task);
-    setMenuOpen(null); // Close the dropdown menu
+    setMenuOpen(null);
   };
 
   const handleDelete = async (taskId) => {
     try {
       setIsLoading(true);
-      const response = await deletetask(taskId);
+      await deletetask(taskId);
       fetchtasks();
     } catch (error) {
       console.error("Failed to delete task:", error);
@@ -94,10 +93,6 @@ export default function ProjectTasks() {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchtasks();
-  }, [id]);
 
   return (
     <div className="flex min-h-screen bg-gray-100">

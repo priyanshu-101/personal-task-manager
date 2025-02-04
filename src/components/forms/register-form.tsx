@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -21,8 +20,8 @@ const formSchema = z.object({
 
 export default function RegisterForm() {
   const router = useRouter();
-  
-  const form = useForm({
+
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { name: "", email: "", password: "" },
   });
@@ -30,17 +29,15 @@ export default function RegisterForm() {
   const mutation = useMutation({
     mutationFn: async (values: z.infer<typeof formSchema>) => {
       const response = await registerUser(values.name, values.email, values.password);
-      if (response || response.status == 201) {
-        router.push("/login");
+      if (response?.status === 201) {
+        return response;
       }
-      else{
-        throw new Error(response?.message || "Registration failed");
-      }
+      throw new Error(response?.message || "Registration failed");
     },
     onSuccess: () => {
       router.push("/login");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       form.setError("root", { message: error.message || "An unexpected error occurred" });
     },
   });

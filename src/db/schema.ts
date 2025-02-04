@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, boolean, uuid } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // ✅ Users Table

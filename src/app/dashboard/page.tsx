@@ -40,6 +40,7 @@ export default function Dashboard() {
   const { data: projects = [], isLoading, error, refetch } = useQuery({
     queryKey: ["projects"],
     queryFn: getProjects,
+    select: (data) => Array.isArray(data) ? data : [],
   });
 
   const deleteMutation = useMutation({
@@ -60,6 +61,7 @@ export default function Dashboard() {
 
   const handleDelete = (projectId) => {
     deleteMutation.mutate(projectId);
+    setDeleteProject(null);
   };
 
   return (
@@ -71,7 +73,7 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold">
             {greeting}, {storedUser?.name} 👋
           </h1>
-          <p className="text-gray-600">Here's an overview of your projects.</p>
+          <p className="text-gray-600">Here is an overview of your projects.</p>
         </div>
 
         <div className="flex items-center justify-between mb-4">
@@ -92,6 +94,8 @@ export default function Dashboard() {
           </div>
         ) : error ? (
           <p className="text-red-500">Error loading projects.</p>
+        ) : projects.length === 0 ? (
+          <p className="text-gray-600">No projects found. Create your first project!</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project) => (
@@ -116,7 +120,10 @@ export default function Dashboard() {
                         }}>
                           Update
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDeleteProject(project)}>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteProject(project);
+                        }}>
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -129,8 +136,8 @@ export default function Dashboard() {
               </Card>
             ))}
           </div>
-
         )}
+
         <div className="mt-8">
           <UpcomingTasks />
         </div>
@@ -148,7 +155,6 @@ export default function Dashboard() {
             setUpdateProjectData(null);
           }}
         />
-
 
         <AlertDialog open={!!deleteProjectModal} onOpenChange={() => setDeleteProject(null)}>
           <AlertDialogContent>
