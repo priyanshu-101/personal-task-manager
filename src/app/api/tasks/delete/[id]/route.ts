@@ -31,8 +31,12 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
         return NextResponse.json({ message: "Task deleted successfully" }, { status: 200 });
 
-    } catch (error: any) {
-        console.error("Error deleting task:", error);
-        return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
+    } catch (error) {
+        console.error("Error deleting category:", error);
+
+        return NextResponse.json({ 
+            error: "Internal Server Error", 
+            details: error instanceof Error ? error.message : "Unknown error" 
+        }, { status: 500 });
     }
 }

@@ -17,7 +17,9 @@ export async function PUT(req: NextRequest) {
     if (existingUser.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-    const updateData: any = {};
+
+    const updateData: Partial<{ name: string; password: string; updatedAt: Date }> = {};
+
     if (name) {
       updateData.name = name;
     }
@@ -26,18 +28,17 @@ export async function PUT(req: NextRequest) {
       updateData.password = await bcrypt.hash(password, 10);
     }
 
+    updateData.updatedAt = new Date();
+
     const updatedUser = await db
       .update(users)
-      .set({
-        ...updateData,
-        updatedAt: new Date(), 
-      })
+      .set(updateData)
       .where(eq(users.email, email))
       .returning();
 
     const userResponse = {
       ...updatedUser[0],
-      password: undefined
+      password: undefined, 
     };
 
     return NextResponse.json(userResponse, { status: 200 });

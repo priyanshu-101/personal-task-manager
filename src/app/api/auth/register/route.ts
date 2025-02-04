@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { eq } from "drizzle-orm";
+
 
 export async function POST(req: NextRequest) {
   const { email, password, name } = await req.json();
@@ -23,6 +22,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(newUser[0], { status: 201 });
   } catch (error) {
+    console.error("Error inserting user:", error);
     return NextResponse.json({ error: "User already exists" }, { status: 400 });
   }
 }

@@ -24,6 +24,7 @@ export async function POST(req: NextRequest){
 
         return NextResponse.json(newProject[0], {status: 201});
     } catch (error){
+        console.error("Error creating project:", error);
         return NextResponse.json({error: "Error creating project"}, {status: 500});
     }
 }
