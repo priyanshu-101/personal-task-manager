@@ -126,6 +126,10 @@ export default function Dashboard() {
                         }}>
                           Delete
                         </DropdownMenuItem>
+                        <DropdownMenuItem>
+                        <p className="text-gray-700">{project.id}</p>
+                        </DropdownMenuItem>
+
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
