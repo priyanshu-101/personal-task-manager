@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, CheckCircle, AlertTriangle } from "lucide-react";
+import { Calendar, CheckCircle, AlertTriangle, PlusCircle } from "lucide-react";
 import { gettasks } from "@/api/task";
 import { format } from "date-fns";
+import Link from "next/link";
 
 interface Task {
   id: number;
@@ -24,7 +25,6 @@ export default function UpcomingTasks() {
   const fetchtasks = async () => {
     try {
       const tasksResponse = await gettasks();
-      
       const tasks = Array.isArray(tasksResponse) ? tasksResponse : [];
 
       if (tasks.length === 0) {
@@ -33,39 +33,21 @@ export default function UpcomingTasks() {
       }
 
       const today = new Date();
-      today.setHours(0, 0, 0, 0); 
-      
-      const tomorrow = new Date(today);
-      tomorrow.setDate(today.getDate() + 1);
-
-      const dayAfterTomorrow = new Date(today);
-      dayAfterTomorrow.setDate(today.getDate() + 2);
+      today.setHours(0, 0, 0, 0);
 
       const filteredUpcomingTasks = tasks.filter((task) => {
         const taskDueDate = new Date(task.dueDate);
-        taskDueDate.setHours(0, 0, 0, 0); 
-        
-        return (
-          task.status?.toLowerCase() !== "completed" &&
-          (taskDueDate.toDateString() === tomorrow.toDateString() ||
-            taskDueDate.toDateString() === dayAfterTomorrow.toDateString() ||
-            taskDueDate.toDateString() === today.toDateString()) 
-        );
-      });
-
-      const filteredCompletedTasks = tasks.filter((task) => 
-        task.status?.toLowerCase() === "completed"
-      );
-
-      const filteredExpiredTasks = tasks.filter((task) => {
-        const taskDueDate = new Date(task.dueDate);
-        taskDueDate.setHours(0, 0, 0, 0); 
-        return taskDueDate < today && task.status?.toLowerCase() !== "completed";
+        taskDueDate.setHours(0, 0, 0, 0);
+        return task.status?.toLowerCase() !== "completed" && taskDueDate >= today;
       });
 
       setUpcomingTasks(filteredUpcomingTasks);
-      setCompletedTasks(filteredCompletedTasks);
-      setExpiredTasks(filteredExpiredTasks);
+      setCompletedTasks(tasks.filter((task) => task.status?.toLowerCase() === "completed"));
+      setExpiredTasks(tasks.filter((task) => {
+        const taskDueDate = new Date(task.dueDate);
+        taskDueDate.setHours(0, 0, 0, 0);
+        return taskDueDate < today && task.status?.toLowerCase() !== "completed";
+      }));
     } catch (error) {
       console.error("Failed to fetch tasks:", error);
       setError("Failed to load tasks");
@@ -78,46 +60,38 @@ export default function UpcomingTasks() {
 
   const getPriorityColor = (priority: string | null | undefined) => {
     if (!priority || typeof priority !== "string") return "text-gray-600";
-  
     const colors: Record<string, string> = {
       high: "text-red-600",
       medium: "text-yellow-600",
       low: "text-green-600",
     };
-  
     return colors[priority.toLowerCase()] || "text-gray-600";
   };
-  
-  
-  if (error) {
-    return (
-      <Card className="bg-red-50">
-        <CardContent className="flex flex-col items-center justify-center py-8">
-          <AlertTriangle className="w-12 h-12 text-red-600 mb-4" />
-          <p className="text-red-600 text-lg">{error}</p>
-        </CardContent>
-      </Card>
-    );
-  }
+
+  const generateGoogleCalendarUrl = (task: Task) => {
+    const startDate = format(new Date(task.dueDate), "yyyyMMdd");
+    const eventUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+      task.title
+    )}&dates=${startDate}/${startDate}&details=${encodeURIComponent("Task from Task Manager")}`;
+    return eventUrl;
+  };
 
   return (
     <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-          <Calendar className="w-6 h-6" />
-          Upcoming Tasks
+          <Calendar className="w-6 h-6" /> Upcoming Tasks
         </h2>
         {upcomingTasks.length === 0 ? (
           <Card className="bg-gray-50 border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-8">
-              <Calendar className="w-12 h-12 text-gray-400 mb-4" />
-              <p className="text-gray-600 text-lg">No upcoming tasks for today or next two days</p>
+            <CardContent className="text-center py-8">
+              <p className="text-gray-600 text-lg">No upcoming tasks</p>
             </CardContent>
           </Card>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {upcomingTasks.map((task) => (
-              <Card key={task.id} className="shadow-md hover:shadow-lg transition-shadow">
+              <Card key={task.id} className="shadow-md">
                 <CardHeader>
                   <CardTitle className="text-lg">{task.title}</CardTitle>
                 </CardHeader>
@@ -132,6 +106,38 @@ export default function UpcomingTasks() {
                     </p>
                     <Badge variant="outline">{task.status}</Badge>
                   </div>
+                  <Link href={generateGoogleCalendarUrl(task)} target="_blank">
+                    <div className="flex items-center gap-2 text-blue-600 hover:text-blue-800 cursor-pointer">
+                      <PlusCircle className="w-5 h-5" />
+                      <span>Add to Google Calendar</span>
+                    </div>
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+      <div>
+        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+          <CheckCircle className="w-6 h-6" /> Completed Tasks
+        </h2>
+        {completedTasks.length === 0 ? (
+          <Card className="bg-gray-50 border-dashed">
+            <CardContent className="text-center py-8">
+              <p className="text-gray-600 text-lg">No completed tasks</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {completedTasks.map((task) => (
+              <Card key={task.id} className="shadow-md bg-gray-50">
+                <CardHeader>
+                  <CardTitle className="text-lg">{task.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">{format(new Date(task.dueDate), "dd MMM yyyy")}</p>
+                  <Badge variant="success">Completed</Badge>
                 </CardContent>
               </Card>
             ))}
@@ -139,54 +145,10 @@ export default function UpcomingTasks() {
         )}
       </div>
 
-      {completedTasks.length > 0 ? (
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <CheckCircle className="w-6 h-6" />
-            Completed Tasks
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {completedTasks.map((task) => (
-              <Card key={task.id} className="shadow-md bg-gray-50">
-                <CardHeader>
-                  <CardTitle className="text-lg">{task.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-3">
-                  <p className="text-gray-600 flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {format(new Date(task.dueDate), "dd MMM yyyy")}
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <p className={`font-medium ${getPriorityColor(task.priority)}`}>
-                      {task.priority || 'No'} Priority
-                    </p>
-                    <Badge variant="success">Completed</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Calendar className="w-6 h-6" />
-            Completed Tasks
-          </h2>
-          <Card className="bg-gray-50 border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-8">
-              <Calendar className="w-12 h-12 text-gray-400 mb-4" />
-              <p className="text-gray-600 text-lg">No task completed yet</p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       {expiredTasks.length > 0 && (
-        <div className="mt-12">
+        <div>
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-red-600">
-            <AlertTriangle className="w-6 h-6" />
-            Expired Tasks
+            <AlertTriangle className="w-6 h-6" /> Expired Tasks
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {expiredTasks.map((task) => (
@@ -194,11 +156,8 @@ export default function UpcomingTasks() {
                 <CardHeader>
                   <CardTitle className="text-lg">{task.title}</CardTitle>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-3">
-                  <p className="text-gray-600 flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {format(new Date(task.dueDate), "dd MMM yyyy")}
-                  </p>
+                <CardContent>
+                  <p className="text-gray-600">{format(new Date(task.dueDate), "dd MMM yyyy")}</p>
                   <Badge variant="destructive">Expired</Badge>
                 </CardContent>
               </Card>
