@@ -65,9 +65,14 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="relative flex min-h-screen bg-gray-100">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
+          <Spinner />
+        </div>
+      )}
       <Sidebar />
-
+  
       <main className="flex-1 p-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold">
@@ -75,7 +80,7 @@ export default function Dashboard() {
           </h1>
           <p className="text-gray-600">Here is an overview of your projects.</p>
         </div>
-
+  
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Your Projects</h2>
           <Button
@@ -87,12 +92,8 @@ export default function Dashboard() {
             Create Project
           </Button>
         </div>
-
-        {isLoading ? (
-          <div className="flex justify-center items-center h-40">
-            <Spinner />
-          </div>
-        ) : error ? (
+  
+        {error ? (
           <p className="text-red-500">Error loading projects.</p>
         ) : projects.length === 0 ? (
           <p className="text-gray-600">No projects found. Create your first project!</p>
@@ -126,10 +127,6 @@ export default function Dashboard() {
                         }}>
                           Delete
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                        <p className="text-gray-700">{project.id}</p>
-                        </DropdownMenuItem>
-
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -141,15 +138,15 @@ export default function Dashboard() {
             ))}
           </div>
         )}
-
+  
         <div className="mt-8">
           <UpcomingTasks />
         </div>
-
+  
         <div className="mt-8">
           <Footer />
         </div>
-
+  
         <UpdateProjectModal
           project={updateProjectData}
           isOpen={!!updateProjectData}
@@ -159,7 +156,7 @@ export default function Dashboard() {
             setUpdateProjectData(null);
           }}
         />
-
+  
         <AlertDialog open={!!deleteProjectModal} onOpenChange={() => setDeleteProject(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -182,4 +179,5 @@ export default function Dashboard() {
       </main>
     </div>
   );
+  
 }
