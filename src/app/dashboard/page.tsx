@@ -73,7 +73,7 @@ export default function Dashboard() {
       )}
       <Sidebar />
   
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 pl-20"> 
         <div className="mb-6">
           <h1 className="text-3xl font-bold">
             {greeting}, {storedUser?.name} 👋
@@ -179,5 +179,4 @@ export default function Dashboard() {
       </main>
     </div>
   );
-  
 }
