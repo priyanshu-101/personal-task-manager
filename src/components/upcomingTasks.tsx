@@ -20,7 +20,6 @@ export default function UpcomingTasks() {
   const [upcomingTasks, setUpcomingTasks] = useState<Task[]>([]);
   const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
   const [expiredTasks, setExpiredTasks] = useState<Task[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
   const fetchtasks = async () => {
     try {
@@ -28,7 +27,6 @@ export default function UpcomingTasks() {
       const tasks = Array.isArray(tasksResponse) ? tasksResponse : [];
 
       if (tasks.length === 0) {
-        setError("No tasks found");
         return;
       }
 
@@ -50,7 +48,6 @@ export default function UpcomingTasks() {
       }));
     } catch (error) {
       console.error("Failed to fetch tasks:", error);
-      setError("Failed to load tasks");
     }
   };
 
@@ -137,7 +134,7 @@ export default function UpcomingTasks() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">{format(new Date(task.dueDate), "dd MMM yyyy")}</p>
-                  <Badge variant="success">Completed</Badge>
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">Completed</Badge>
                 </CardContent>
               </Card>
             ))}
