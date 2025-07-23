@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json(); 
 
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     cookieStore.delete('token');
 
     console.log(`User ${email} logged out successfully`);
