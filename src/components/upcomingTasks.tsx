@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 
 interface Task {
-  id: number;
+  id: string;
   title: string;
   dueDate: string;
   priority: string;

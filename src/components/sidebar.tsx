@@ -37,8 +37,10 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user") || "null") as User | null;
-    setStoredUser(user);
+    if (typeof window !== 'undefined') {
+      const user = JSON.parse(localStorage.getItem("user") || "null") as User | null;
+      setStoredUser(user);
+    }
   }, []);
 
   const handleLogout = async () => {

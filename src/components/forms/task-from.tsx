@@ -56,7 +56,7 @@ export default function CreateTaskForm() {
     try {
       setLoading(true);
       console.log("Submitting Form Data:", values);
-      await createtask(values.title, values.description, values.status, values.priority, values.dueDate, values.projectId);
+      await createtask(values.title, values.description, values.status, values.priority, values.dueDate.toISOString(), values.projectId);
       router.push("/dashboard");
     } catch (error) {
       console.error("Failed to create task:", error);

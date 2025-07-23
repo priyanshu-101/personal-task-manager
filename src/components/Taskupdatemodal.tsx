@@ -25,10 +25,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { updatetask } from "@/api/task";
 
-const formatDate = (date) => {
+const formatDate = (date: Date | string | null) => {
   if (!date) return "Pick a date";
   
-  const options = { year: "numeric", month: "long", day: "numeric" };
+  const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "long", day: "numeric" };
   const formattedDate = new Date(date).toLocaleDateString("en-US", options);
   
   const day = new Date(date).getDate();
@@ -36,11 +36,42 @@ const formatDate = (date) => {
                 day === 2 || day === 22 ? "nd" :
                 day === 3 || day === 23 ? "rd" : "th";
 
-  return formattedDate.replace(day, `${day}${suffix}`);
+  return formattedDate.replace(day.toString(), `${day}${suffix}`);
 };
 
-const TaskUpdateModal = ({ task, isOpen, onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({
+interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  priority: string;
+  dueDate: string;
+  projectId: string;
+}
+
+interface TaskUpdateModalProps {
+  task: Task | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+interface FormData {
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  dueDate: Date | null;
+  projectId: string;
+}
+
+interface FormErrors {
+  title?: string;
+  projectId?: string;
+}
+
+const TaskUpdateModal = ({ task, isOpen, onClose, onSuccess }: TaskUpdateModalProps) => {
+  const [formData, setFormData] = useState<FormData>({
     title: task?.title || "",
     description: task?.description || "",
     status: (task?.status || "").toLowerCase(),
@@ -49,11 +80,11 @@ const TaskUpdateModal = ({ task, isOpen, onClose, onSuccess }) => {
     projectId: task?.projectId?.toString() || "",
   });
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: FormErrors = {};
     
     if (!formData.title.trim()) {
       newErrors.title = "Title is required";
@@ -67,10 +98,10 @@ const TaskUpdateModal = ({ task, isOpen, onClose, onSuccess }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!validateForm() || !task) {
       return;
     }
 
@@ -81,18 +112,18 @@ const TaskUpdateModal = ({ task, isOpen, onClose, onSuccess }) => {
         formData.title,
         formData.description,
         formData.status,
-        parseInt(formData.priority),
-        formData.dueDate ? formData.dueDate.toISOString() : null,
-        parseInt(formData.projectId)
+        formData.priority,
+        formData.dueDate ? formData.dueDate.toISOString() : "",
+        formData.projectId
       );
       onSuccess();
       onClose();
     } catch (error) {
       console.error("Error updating task:", error);
-      if (error.message === "Title and Project ID are required") {
+      if (error instanceof Error && error.message === "Title and Project ID are required") {
         setErrors({
-          title: !formData.title.trim() ? "Title is required" : "",
-          projectId: !formData.projectId.trim() ? "Project ID is required" : "",
+          title: !formData.title.trim() ? "Title is required" : undefined,
+          projectId: !formData.projectId.trim() ? "Project ID is required" : undefined,
         });
       }
     } finally {
@@ -224,9 +255,9 @@ const TaskUpdateModal = ({ task, isOpen, onClose, onSuccess }) => {
                   <PopoverContent align="start" className="w-auto p-0">
                     <Calendar
                       mode="single"
-                      selected={formData.dueDate}
+                      selected={formData.dueDate || undefined}
                       onSelect={(date) =>
-                        setFormData({ ...formData, dueDate: date })
+                        setFormData({ ...formData, dueDate: date || null })
                       }
                       initialFocus
                     />
