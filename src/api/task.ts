@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const createtask = async (title, desc , st, priority, date, id) => {
+export const createtask = async (title: string, desc: string, st: string, priority: string, date: string, id: string) => {
     try {
         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
         const payload = 
@@ -47,7 +47,7 @@ export const gettasks = async () => {
     }
 }
 
-export const deletetask = async (taskId) => {
+export const deletetask = async (taskId: string) => {
     try {
         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
         
@@ -66,7 +66,7 @@ export const deletetask = async (taskId) => {
     }
 }
 
-export const updatetask = async (taskId, title, desc , st, priority, date, id) => {
+export const updatetask = async (taskId: string, title: string, desc: string, st: string, priority: string, date: string, id: string) => {
     try {
         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
         const payload = 

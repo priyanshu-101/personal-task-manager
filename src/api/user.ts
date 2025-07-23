@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const updateuser = async (name, email, password) => {
+export const updateuser = async (name: string, email: string, password: string) => {
     try {
         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
         const payload =
