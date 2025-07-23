@@ -1,13 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { tasks } from "@/db/schema";
 import { authMiddleware } from "../../middleware/authmiddleware";
+import { createCorsResponse, optionsResponse } from "@/lib/cors";
 
 interface JwtPayload {
   userId: string;
   email: string;
   iat?: number;
   exp?: number;
+}
+
+export async function OPTIONS() {
+    return optionsResponse();
 }
 
 function parseFormattedDate(dateStr: string): Date | null {
@@ -32,22 +37,22 @@ function formatDate(date: Date | null): string | null {
 export async function POST(req: NextRequest) {
     const user = await authMiddleware(req);
     if (!user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        return createCorsResponse({ error: "Unauthorized" }, 401);
     }
 
-    // Check if user is a NextResponse (error response)
-    if (user instanceof NextResponse) {
+    // Check if user is a NextResponse (error response) - now it's a Response with CORS
+    if (user instanceof Response) {
         return user;
     }
 
     const { title, description, status, priority, dueDate, projectId } = await req.json();
     if (!title || !projectId) {
-        return NextResponse.json({ error: "Title and Project ID are required" }, { status: 400 });
+        return createCorsResponse({ error: "Title and Project ID are required" }, 400);
     }
 
     const parsedDueDate = parseFormattedDate(dueDate);
     if (dueDate && !parsedDueDate) {
-        return NextResponse.json({ error: "Invalid due date format" }, { status: 400 });
+        return createCorsResponse({ error: "Invalid due date format" }, 400);
     }
 
     try {
@@ -77,12 +82,12 @@ export async function POST(req: NextRequest) {
             dueDate: newTask[0].dueDate ? formatDate(new Date(newTask[0].dueDate)) : null
         };
 
-        return NextResponse.json(taskWithFormattedDate, { status: 201 });
+        return createCorsResponse(taskWithFormattedDate, 201);
     } catch (error) {
         console.error("Error creating task:", error);
-        return NextResponse.json({ 
+        return createCorsResponse({ 
             error: "Error creating task", 
             details: error instanceof Error ? error.message : "Unknown error" 
-        }, { status: 500 });
+        }, 500);
     }
 }

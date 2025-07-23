@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { tasks } from "@/db/schema";
 import { authMiddleware } from "../../middleware/authmiddleware";
 import { eq, desc } from "drizzle-orm";
+import { createCorsResponse, optionsResponse } from "@/lib/cors";
 
 interface JwtPayload {
   userId: string;
@@ -11,14 +12,18 @@ interface JwtPayload {
   exp?: number;
 }
 
+export async function OPTIONS() {
+    return optionsResponse();
+}
+
 export async function GET(req: NextRequest) {
     const user = await authMiddleware(req);
     if (!user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        return createCorsResponse({ error: "Unauthorized" }, 401);
     }
 
-    // Check if user is a NextResponse (error response)
-    if (user instanceof NextResponse) {
+    // Check if user is a Response (error response) - now with CORS
+    if (user instanceof Response) {
         return user;
     }
 
@@ -31,12 +36,12 @@ export async function GET(req: NextRequest) {
             .where(eq(tasks.userId, (user as JwtPayload).userId))
             .orderBy(desc(tasks.id)); 
 
-        return NextResponse.json(allTasks, { status: 200 });
+        return createCorsResponse(allTasks, 200);
     } catch (error) {
         console.error("Error fetching tasks:", error);
-        return NextResponse.json({ 
+        return createCorsResponse({ 
             error: "Error fetching tasks", 
             details: error instanceof Error ? error.message : "Unknown error" 
-        }, { status: 500 });
+        }, 500);
     }
 }

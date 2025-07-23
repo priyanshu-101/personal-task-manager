@@ -1,15 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
+import { createCorsResponse } from "@/lib/cors";
 
 export async function authMiddleware(req: NextRequest) {
   const token = req.headers.get("Authorization")?.split(" ")[1];
 
-  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!token) return createCorsResponse({ error: "Unauthorized" }, 401);
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
     return decoded;
   } catch {
-    return NextResponse.json({ error: "Invalid Token" }, { status: 403 });
+    return createCorsResponse({ error: "Invalid Token" }, 403);
   }
 }

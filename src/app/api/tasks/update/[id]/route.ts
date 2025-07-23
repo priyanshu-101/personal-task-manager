@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { tasks } from "@/db/schema";
 import { authMiddleware } from "../../../middleware/authmiddleware";
 import { eq, and } from "drizzle-orm";
+import { createCorsResponse, optionsResponse } from "@/lib/cors";
 
 interface JwtPayload {
   userId: string;
@@ -11,14 +12,18 @@ interface JwtPayload {
   exp?: number;
 }
 
+export async function OPTIONS() {
+    return optionsResponse();
+}
+
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await authMiddleware(req);
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return createCorsResponse({ error: "Unauthorized" }, 401);
   }
 
-  // Check if user is a NextResponse (error response)
-  if (user instanceof NextResponse) {
+  // Check if user is a Response (error response) - now with CORS
+  if (user instanceof Response) {
     return user;
   }
 
@@ -28,19 +33,19 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   console.log("User ID:", (user as JwtPayload).userId);
 
   if (!id || typeof taskId !== 'string') {
-    return NextResponse.json({ error: "Invalid Task ID" }, { status: 400 });
+    return createCorsResponse({ error: "Invalid Task ID" }, 400);
   }
 
   const { title, description, status, priority, dueDate, projectId } = await req.json();
   if (typeof title === 'undefined' || typeof projectId === 'undefined') {
-    return NextResponse.json({ error: "Title and Project ID are required" }, { status: 400 });
+    return createCorsResponse({ error: "Title and Project ID are required" }, 400);
   }
 
   let parsedDueDate = null;
   if (dueDate) {
     parsedDueDate = new Date(dueDate);
     if (isNaN(parsedDueDate.getTime())) {
-      return NextResponse.json({ error: "Invalid due date format" }, { status: 400 });
+      return createCorsResponse({ error: "Invalid due date format" }, 400);
     }
   }
 
@@ -56,9 +61,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     console.log("Existing task:", existingTask);
 
     if (!existingTask || existingTask.length === 0) {
-      return NextResponse.json(
+      return createCorsResponse(
         { error: "Task not found or does not belong to the user" }, 
-        { status: 404 }
+        404
       );
     }
     const updatedTask = await db.update(tasks)
@@ -89,23 +94,23 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     console.log("Updated task:", updatedTask);
 
     if (!updatedTask || updatedTask.length === 0) {
-      return NextResponse.json(
+      return createCorsResponse(
         { error: "Failed to update task" }, 
-        { status: 500 }
+        500
       );
     }
 
-    return NextResponse.json(updatedTask[0], { status: 200 });
+    return createCorsResponse(updatedTask[0], 200);
 
   } catch (error) {
     console.error("Error updating task:", error);
-    return NextResponse.json(
+    return createCorsResponse(
       { 
         error: "Error updating task", 
         details: error instanceof Error ? error.message : "Unknown error",
         stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined 
       }, 
-      { status: 500 }
+      500
     );
   }
 }
