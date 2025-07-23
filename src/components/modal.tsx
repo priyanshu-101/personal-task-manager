@@ -12,17 +12,33 @@ import { Textarea } from "@/components/ui/textarea";
 import { updateProject } from "@/api/project";
 import Spinner from "@/components/spinner";
 
-const UpdateProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
+interface Project {
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+}
+
+interface UpdateProjectModalProps {
+  project: Project | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+const UpdateProjectModal = ({ project, isOpen, onClose, onSuccess }: UpdateProjectModalProps) => {
   const [formData, setFormData] = useState({
     name: project?.name || "",
     description: project?.description || "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null);
+
+    if (!project) return;
 
     try {
       setLoading(true);

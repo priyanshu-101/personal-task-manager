@@ -29,13 +29,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+interface Project {
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+}
+
 export default function Dashboard() {
   const [greeting, setGreeting] = useState("Good morning");
-  const [deleteProjectModal, setDeleteProject] = useState(null);
-  const [updateProjectData, setUpdateProjectData] = useState(null);
+  const [deleteProjectModal, setDeleteProject] = useState<Project | null>(null);
+  const [updateProjectData, setUpdateProjectData] = useState<Project | null>(null);
   const router = useRouter();
 
-  const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+  const storedUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem("user") || "null") : null;
 
   const { data: projects = [], isLoading, error, refetch } = useQuery({
     queryKey: ["projects"],
@@ -44,7 +51,7 @@ export default function Dashboard() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (projectId) => deleteProject(projectId),
+    mutationFn: (projectId: string) => deleteProject(projectId),
     onSuccess: () => {
       refetch();
     },
@@ -59,7 +66,7 @@ export default function Dashboard() {
     else if (hour >= 18) setGreeting("Good evening");
   }, []);
 
-  const handleDelete = (projectId) => {
+  const handleDelete = (projectId: string) => {
     deleteMutation.mutate(projectId);
     setDeleteProject(null);
   };
@@ -108,8 +115,8 @@ export default function Dashboard() {
                 <CardHeader className="p-4">
                   <div className="flex items-center justify-between space-x-2">
                     <CardTitle className="truncate">{project.name}</CardTitle>
-                    <DropdownMenu onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuTrigger asChild>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
@@ -168,7 +175,7 @@ export default function Dashboard() {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => handleDelete(deleteProjectModal?.id)}
+                onClick={() => deleteProjectModal?.id && handleDelete(deleteProjectModal.id)}
                 className="bg-red-500 hover:bg-red-600"
               >
                 Delete

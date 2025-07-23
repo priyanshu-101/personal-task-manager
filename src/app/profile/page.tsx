@@ -16,17 +16,13 @@ const ProfilePage = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUserData(JSON.parse(storedUser) as UserData);
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setUserData(JSON.parse(storedUser) as UserData);
+      }
     }
   }, []);
-
-  const handleSave = (updatedData: UserData) => {
-    localStorage.setItem("user", JSON.stringify(updatedData));
-    setUserData(updatedData);
-    alert("Profile updated successfully!");
-  };
 
   if (!userData) {
     return <div className="text-center">Loading...</div>;
@@ -36,7 +32,7 @@ const ProfilePage = () => {
     <div className="flex h-screen">
       <Sidebar />
       <div className="flex-1 p-6">
-        <ProfileForm userData={userData} onSave={handleSave} />
+        <ProfileForm userData={userData} />
       </div>
     </div>
   );

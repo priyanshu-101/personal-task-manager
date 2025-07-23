@@ -4,18 +4,30 @@ import { tasks } from "@/db/schema";
 import { authMiddleware } from "../../../middleware/authmiddleware";
 import { eq, and } from "drizzle-orm";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+interface JwtPayload {
+  userId: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
+
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await authMiddleware(req);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = params;
-  const taskId = Number(id);
-  console.log("Update request for task ID:", taskId);
-  console.log("User ID:", user.id);
+  // Check if user is a NextResponse (error response)
+  if (user instanceof NextResponse) {
+    return user;
+  }
 
-  if (!id || isNaN(taskId)) {
+  const { id } = await params;
+  const taskId = id;
+  console.log("Update request for task ID:", taskId);
+  console.log("User ID:", (user as JwtPayload).userId);
+
+  if (!id || typeof taskId !== 'string') {
     return NextResponse.json({ error: "Invalid Task ID" }, { status: 400 });
   }
 
@@ -90,8 +102,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json(
       { 
         error: "Error updating task", 
-        details: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+        details: error instanceof Error ? error.message : "Unknown error",
+        stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined 
       }, 
       { status: 500 }
     );

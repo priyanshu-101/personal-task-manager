@@ -13,13 +13,38 @@ import TaskUpdateModal from "../../../components/Taskupdatemodal";
 
 const COLORS = ["#4CAF50", "#FF9800", "#F44336"];
 
+interface TaskData {
+  id: string;
+  title: string;
+  dueDate: string;
+  status: string;
+  priority: string;
+  projectId: string;
+  description?: string;
+}
+
+interface RawTask {
+  id: string;
+  title: string;
+  dueDate: string;
+  status: string;
+  priority?: number | string;
+  projectId: string;
+  description?: string;
+}
+
+interface TaskStat {
+  name: string;
+  value: number;
+}
+
 export default function ProjectTasks() {
   const { id } = useParams();
-  const [projectTasks, setProjectTasks] = useState([]);
+  const [projectTasks, setProjectTasks] = useState<TaskData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [taskStats, setTaskStats] = useState([]);
-  const [updateTask, setUpdateTask] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(null);
+  const [taskStats, setTaskStats] = useState<TaskStat[]>([]);
+  const [updateTask, setUpdateTask] = useState<TaskData | null>(null);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
   const fetchtasks = useCallback(async () => {
     setIsLoading(true);
@@ -31,8 +56,8 @@ export default function ProjectTasks() {
       }
 
       const filteredTasks = tasks
-        .filter((task) => task.projectId === Number(id))
-        .map((task) => ({
+        .filter((task: RawTask) => task.projectId === id)
+        .map((task: RawTask) => ({
           id: task.id,
           title: task.title,
           dueDate: new Date(task.dueDate).toLocaleDateString("en-GB", {
@@ -41,9 +66,12 @@ export default function ProjectTasks() {
             day: "numeric",
           }),
           status: task.status.charAt(0).toUpperCase() + task.status.slice(1),
+          priority: task.priority?.toString() || "1",
+          projectId: task.projectId,
+          description: task.description || "",
         }));
 
-      filteredTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+      filteredTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
       setProjectTasks(filteredTasks);
       calculateTaskStats(filteredTasks);
@@ -58,8 +86,8 @@ export default function ProjectTasks() {
     fetchtasks();
   }, [fetchtasks]);
 
-  const calculateTaskStats = (tasks) => {
-    const statusCounts = tasks.reduce((acc, task) => {
+  const calculateTaskStats = (tasks: TaskData[]) => {
+    const statusCounts = tasks.reduce((acc: Record<string, number>, task) => {
       acc[task.status] = (acc[task.status] || 0) + 1;
       return acc;
     }, {});
@@ -72,17 +100,17 @@ export default function ProjectTasks() {
     setTaskStats(chartData);
   };
 
-  const handleMenuToggle = (taskId) => {
+  const handleMenuToggle = (taskId: string) => {
     setMenuOpen(menuOpen === taskId ? null : taskId);
   };
 
-  const handleUpdate = (taskId) => {
+  const handleUpdate = (taskId: string) => {
     const task = projectTasks.find((t) => t.id === taskId);
-    setUpdateTask(task);
+    setUpdateTask(task || null);
     setMenuOpen(null);
   };
 
-  const handleDelete = async (taskId) => {
+  const handleDelete = async (taskId: string) => {
     try {
       setIsLoading(true);
       await deletetask(taskId);
@@ -166,7 +194,7 @@ export default function ProjectTasks() {
                     <CardContent className="flex justify-between items-center">
                       <p className="text-gray-600">Due: {task.dueDate}</p>
                       <Badge
-                        variant={task.status.toLowerCase() === "completed" ? "success" : "default"}
+                        variant={task.status.toLowerCase() === "completed" ? "secondary" : "default"}
                       >
                         {task.status}
                       </Badge>
