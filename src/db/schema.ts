@@ -27,7 +27,7 @@ export const tasks = pgTable("tasks", {
   status: text("status").default("pending"), // pending, in-progress, completed
   priority: integer("priority").notNull().default(1), // 1 = Low, 2 = Medium, 3 = High
   dueDate: timestamp("due_date"),
-  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  projectId: uuid("project_id").references(() => projects.id, { onDelete: "cascade" }),
   userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -41,7 +41,7 @@ export const categories = pgTable("categories", {
 
 // ✅ Task-Categories Relationship Table (Many-to-Many)
 export const taskCategories = pgTable("task_categories", {
-  taskId: integer("task_id").references(() => tasks.id, { onDelete: "cascade" }),
+  taskId: uuid("task_id").references(() => tasks.id, { onDelete: "cascade" }),
   categoryId: integer("category_id").references(() => categories.id, { onDelete: "cascade" }),
 });
 
