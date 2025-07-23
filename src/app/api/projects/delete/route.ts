@@ -11,9 +11,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     const { id } = await req.json();
-    const projectId = Number(id);
+    const projectId = id;
 
-    if (!id || isNaN(projectId)) {
+    if (!id || typeof projectId !== 'string') {
         return NextResponse.json({ error: "Invalid Project ID" }, { status: 400 });
     }
 
@@ -29,6 +29,9 @@ export async function DELETE(req: NextRequest) {
         return NextResponse.json(deletedProject[0], { status: 200 });
     } catch (error) {
         console.error("Error deleting project:", error);
-        return NextResponse.json({ error: "Error deleting project", details: error.message }, { status: 500 });
+        return NextResponse.json({ 
+            error: "Error deleting project", 
+            details: error instanceof Error ? error.message : "Unknown error" 
+        }, { status: 500 });
     }
 }

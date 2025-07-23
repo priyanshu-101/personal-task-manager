@@ -4,16 +4,16 @@ import { tasks } from "@/db/schema";
 import { authMiddleware } from "../../../middleware/authmiddleware"; 
 import { eq } from "drizzle-orm";
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const user = await authMiddleware(req);
         if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
-        const { id } = params;
-        const taskId = Number(id);
+        const { id } = await params;
+        const taskId = id;
 
-        if (!id || isNaN(taskId)) {
+        if (!id || typeof taskId !== 'string') {
             return NextResponse.json({ error: "Invalid Task ID" }, { status: 400 });
         }
 
@@ -23,11 +23,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
             return NextResponse.json({ error: "Task not found" }, { status: 404 });
         }
 
-        const deletedTaskCount = await db.delete(tasks).where(eq(tasks.id, taskId));
-
-        if (deletedTaskCount === 0) {
-            return NextResponse.json({ error: "Task not found" }, { status: 404 });
-        }
+        await db.delete(tasks).where(eq(tasks.id, taskId));
 
         return NextResponse.json({ message: "Task deleted successfully" }, { status: 200 });
 

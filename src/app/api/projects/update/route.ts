@@ -11,9 +11,9 @@ export async function PUT(req: NextRequest) {
     }
 
     const { id, name, description } = await req.json();
-    const projectId = Number(id);
+    const projectId = id;
 
-    if (!id || isNaN(projectId)) {
+    if (!id || typeof projectId !== 'string') {
         return NextResponse.json({ error: "Invalid Project ID" }, { status: 400 });
     }
 
@@ -30,6 +30,9 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json(updatedProject[0], { status: 200 });
     } catch (error) {
         console.error("Error updating project:", error);
-        return NextResponse.json({ error: "Error updating project", details: error.message }, { status: 500 });
+        return NextResponse.json({ 
+            error: "Error updating project", 
+            details: error instanceof Error ? error.message : "Unknown error" 
+        }, { status: 500 });
     }
 }

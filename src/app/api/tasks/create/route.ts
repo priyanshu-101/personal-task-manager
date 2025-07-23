@@ -3,6 +3,13 @@ import { db } from "@/db";
 import { tasks } from "@/db/schema";
 import { authMiddleware } from "../../middleware/authmiddleware";
 
+interface JwtPayload {
+  userId: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
+
 function parseFormattedDate(dateStr: string): Date | null {
     if (!dateStr) return null;
 
@@ -28,6 +35,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check if user is a NextResponse (error response)
+    if (user instanceof NextResponse) {
+        return user;
+    }
+
     const { title, description, status, priority, dueDate, projectId } = await req.json();
     if (!title || !projectId) {
         return NextResponse.json({ error: "Title and Project ID are required" }, { status: 400 });
@@ -47,7 +59,7 @@ export async function POST(req: NextRequest) {
                 priority,
                 dueDate: parsedDueDate, 
                 projectId,
-                userId: user.userId
+                userId: (user as JwtPayload).userId
             })
             .returning({
                 id: tasks.id,
@@ -68,6 +80,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(taskWithFormattedDate, { status: 201 });
     } catch (error) {
         console.error("Error creating task:", error);
-        return NextResponse.json({ error: "Error creating task", details: error.message }, { status: 500 });
+        return NextResponse.json({ 
+            error: "Error creating task", 
+            details: error instanceof Error ? error.message : "Unknown error" 
+        }, { status: 500 });
     }
 }
